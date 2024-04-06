@@ -130,7 +130,7 @@ func (h *Handlers) UpdateUserHandler(c *fiber.Ctx) error {
 	// Encontrar o usuário no banco de dados
 	row := h.DB.QueryRow("SELECT * FROM users WHERE id = $1", id)
 
-	// Criar um novo usuário
+	// Criar um novo struct usuário
 	var user models.User
 	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email)
 	if err != nil {
@@ -144,6 +144,31 @@ func (h *Handlers) UpdateUserHandler(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Falha em analisar o corpo da requisição",
+		})
+	}
+
+	// Validar os dados do usuário
+	// Verificar se o email do usuário é vazio
+	if user.Email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "O email é obrigatório",
+		})
+	}
+
+	// Verificar se o email do usuário já existe
+	row = h.DB.QueryRow("SELECT id FROM users WHERE email = $1 AND id != $2", user.Email, id)
+	var existingID int
+	err = row.Scan(&existingID)
+	if err == nil {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error": "Email já cadastrado",
+		})
+	}
+
+	// Verificar se o primeiro nome do usuário é vazio
+	if user.FirstName == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "O primeiro nome é obrigatório",
 		})
 	}
 
