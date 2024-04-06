@@ -21,12 +21,35 @@ func (h *Handlers) CreateUserHandler(c *fiber.Ctx) error {
 			"error": "Falha em analisar o corpo da requisição",
 		})
 	}
+	// Validar os dados do usuário
+	// Verificar se o email do usuário é vazio
+	if user.Email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "O email é obrigatório",
+		})
+	}
+
+	// Verificar se o email do usuário já existe
+	row := h.DB.QueryRow("SELECT id FROM users WHERE email = $1", user.Email)
+	var id int
+	err = row.Scan(&id)
+	if err == nil {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error": "Email já cadastrado",
+		})
+	}
+
+	// Verificar se o primeiro nome do usuário é vazio
+	if user.FirstName == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "O primeiro nome é obrigatório",
+		})
+	}
 
 	// Criar um novo usuário no banco de dados
-	row := h.DB.QueryRow("INSERT INTO users (first_name, last_name, email) VALUES ($1, $2, $3) RETURNING id", user.FirstName, user.LastName, user.Email)
+	row = h.DB.QueryRow("INSERT INTO users (first_name, last_name, email) VALUES ($1, $2, $3) RETURNING id", user.FirstName, user.LastName, user.Email)
 
 	// Obter o ID do novo usuário
-	var id int
 	err = row.Scan(&id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -36,9 +59,10 @@ func (h *Handlers) CreateUserHandler(c *fiber.Ctx) error {
 
 	// Retornar mensagem de sucesso e dados do usuário criado
 	return c.JSON(fiber.Map{
-		"message": "Usuário criado com sucesso",
-		"id":      id,
-		"user":    user,
+		"message":    "Usuário criado com sucesso",
+		"id":         id,
+		"first_name": user.FirstName,
+		"email":      user.Email,
 	})
 }
 
