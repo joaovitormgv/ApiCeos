@@ -15,7 +15,7 @@ type Handlers struct {
 // Função para lidar com requests http de criação de usuários
 func (h *Handlers) CreateUserHandler(c *fiber.Ctx) error {
 	user := &models.User{}
-	user, err := models.UnmarshalData(c.Body())
+	err := user.UnmarshalData(c.Body())
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Falha em analisar o corpo da requisição",
@@ -59,8 +59,16 @@ func (h *Handlers) GetUserHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	// Converter o usuário para JSON usando MarshalData
+	userJSON, err := user.MarshalData()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Falha ao converter usuário para JSON",
+		})
+	}
+
 	// Retornar dados do usuário encontrado
-	return c.JSON(user)
+	return c.Send(userJSON)
 }
 
 // Função para lidar com requests http de listar todos os usuários

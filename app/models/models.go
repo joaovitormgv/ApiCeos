@@ -10,18 +10,17 @@ type User struct {
 }
 
 // função de desserializar dados
-func UnmarshalData(data []byte) (*User, error) {
-	user := &User{}
-	err := json.Unmarshal(data, user)
+func (u *User) UnmarshalData(data []byte) error {
+	err := json.Unmarshal(data, u)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return user, nil
+	return nil
 }
 
 // função de serializar dados
-func MarshalData(user *User) ([]byte, error) {
-	data, err := json.Marshal(user)
+func (u *User) MarshalData() ([]byte, error) {
+	data, err := json.Marshal(u)
 	if err != nil {
 		return nil, err
 	}
