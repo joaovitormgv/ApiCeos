@@ -58,7 +58,7 @@ func (h *Handlers) CreateUserHandler(c *fiber.Ctx) error {
 	}
 
 	// Retornar mensagem de sucesso e dados do usuário criado
-	return c.JSON(fiber.Map{
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message":    "Usuário criado com sucesso",
 		"id":         id,
 		"first_name": user.FirstName,
@@ -92,7 +92,7 @@ func (h *Handlers) GetUserHandler(c *fiber.Ctx) error {
 	}
 
 	// Retornar dados do usuário encontrado
-	return c.Send(userJSON)
+	return c.Status(fiber.StatusOK).Send(userJSON)
 }
 
 // Função para lidar com requests http de listar todos os usuários
