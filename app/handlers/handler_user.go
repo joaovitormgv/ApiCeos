@@ -98,3 +98,60 @@ func (h *Handlers) GetUsersHandler(c *fiber.Ctx) error {
 	// Retornar dados dos usuários encontrados
 	return c.JSON(users)
 }
+
+func (h *Handlers) UpdateUserHandler(c *fiber.Ctx) error {
+	// Obter o ID do usuário
+	id := c.Params("id")
+
+	// Encontrar o usuário no banco de dados
+	row := h.DB.QueryRow("SELECT * FROM users WHERE id = $1", id)
+
+	// Criar um novo usuário
+	var user models.User
+	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Usuário não encontrado",
+		})
+	}
+
+	// Atualizar os dados do usuário
+	err = user.UnmarshalData(c.Body())
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Falha em analisar o corpo da requisição",
+		})
+	}
+
+	// Atualizar o usuário no banco de dados
+	_, err = h.DB.Exec("UPDATE users SET first_name = $1, last_name = $2, email = $3 WHERE id = $4", user.FirstName, user.LastName, user.Email, id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Falha ao atualizar usuário",
+		})
+	}
+
+	// Retornar mensagem de sucesso e dados do usuário atualizado
+	return c.JSON(fiber.Map{
+		"message": "Usuário atualizado com sucesso",
+		"user":    user,
+	})
+}
+
+func (h *Handlers) DeleteUserHandler(c *fiber.Ctx) error {
+	// Obter o ID do usuário
+	id := c.Params("id")
+
+	// Excluir o usuário do banco de dados
+	_, err := h.DB.Exec("DELETE FROM users WHERE id = $1", id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Falha ao excluir usuário",
+		})
+	}
+
+	// Retornar mensagem de sucesso
+	return c.JSON(fiber.Map{
+		"message": "Usuário excluído com sucesso",
+	})
+}

@@ -13,4 +13,8 @@ func SetupRoutes(app *fiber.App, h *handlers.Handlers) {
 	app.Get("users/:id", h.GetUserHandler)
 
 	app.Get("users", h.GetUsersHandler)
+
+	app.Put("users/:id", h.UpdateUserHandler)
+
+	app.Delete("users/:id", h.DeleteUserHandler)
 }
