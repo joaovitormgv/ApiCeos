@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	_ "github.com/lib/pq"
 
@@ -12,7 +13,13 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres dbname=ceos sslmode=disable")
+	// Obter string de conexão com o banco de dados da variável de ambiente
+	connectionString := os.Getenv("DB_CONNECTION_STRING")
+	if connectionString == "" {
+		connectionString = "host=localhost port=5432 user=postgres dbname=ceos sslmode=disable"
+	}
+
+	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		log.Fatal(err)
 	}
